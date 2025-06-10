@@ -2,6 +2,7 @@
 import { redirect, json, type ActionFunction } from "@remix-run/node";
 import { Form, useActionData, useNavigation, Link } from "@remix-run/react";
 import { useState } from "react";
+import { registerUser } from "~/services/userService";
 
  function InputField({
   label,
@@ -42,17 +43,24 @@ export const action: ActionFunction = async ({ request }) => {
   const password = formData.get("password") as string;
 
   if (!email || !password) {
-    return json({ errors: { email: !email ? "Email is required" : null, password: !password ? "Password is required" : null } }, { status: 400 });
+    return json({
+      errors: {
+        email: !email ? "Email is required" : null,
+        password: !password ? "Password is required" : null,
+      }
+    }, { status: 400 });
   }
 
-  // Aquí se hará la llamada real a la API para registrar (ejemplo comentado)
-  // const response = await fetch("https://api.example.com/register", {
-  //   method: "POST",
-  //   headers: { "Content-Type": "application/json" },
-  //   body: JSON.stringify({ email, password })
-  // });
-
-  return redirect("/login");
+  try {
+    await registerUser(email, password);
+    return redirect("/login");
+  } catch (error: any) {
+    return json({
+      errors: {
+        general: error.message || "Registration failed"
+      }
+    }, { status: 500 });
+  }
 };
 
 export default function Register() {
