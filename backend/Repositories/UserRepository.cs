@@ -4,14 +4,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Fullstack.Repositories
 {
-    public interface IUserRepository
-    {
-        Task<User> CreateAsync(User user);
-        Task<User?> GetByIdAsync(int id);
-        Task<User?> GetByEmailAsync(string email);
-        Task<IEnumerable<User>> GetAllAsync();
-    }
-
     public class UserRepository : IUserRepository
     {
         private readonly ApplicationDbContext _context;
@@ -33,7 +25,7 @@ namespace Fullstack.Repositories
             return await _context.Users.ToListAsync();
         }
 
-        public async Task<User?> GetByIdAsync(int id)
+        public async Task<User?> GetByIdAsync(Guid id)
         {
             return await _context.Users.FindAsync(id);
         }

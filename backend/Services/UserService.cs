@@ -1,78 +1,86 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using Microsoft.IdentityModel.Tokens;
 using Fullstack.Models;
-using Microsoft.EntityFrameworkCore;
-using Fullstack.Data; // Add this line if ApplicationDbContext is in the Data namespace
+using Fullstack.Repositories;
 
 namespace Fullstack.Services
 {
-    public interface IUserService
-    {
-        Task<IEnumerable<User>> GetAllUsers();
-        Task<User> GetUserById(int id);
-        Task<User> CreateUser(User user);
-        Task<User> UpdateUser(int id, User user);
-        Task<bool> DeleteUser(int id);
-        Task<User> GetUserByEmail(string email);
-    }
 
     public class UserService : IUserService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IUserRepository _userRepository;
+        private readonly IConfiguration _configuration;
 
-        public UserService(ApplicationDbContext context)
+        public UserService(IUserRepository userRepository, IConfiguration configuration)
         {
-            _context = context;
+            _userRepository = userRepository;
+            _configuration = configuration;
         }
-
-        public async Task<IEnumerable<User>> GetAllUsers()
+        public async Task<(bool Success, User? User, string? ErrorMessage)> RegisterAsync(string email, string password)
         {
-            return await _context.Users.ToListAsync();
-        }
-
-        public async Task<User> GetUserById(int id)
-        {
-            return await _context.Users.FindAsync(id);
-        }
-
-        public async Task<User> CreateUser(User user)
-        {
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-            return user;
-        }
-
-        public async Task<User> UpdateUser(int id, User user)
-        {
-            var existingUser = await _context.Users.FindAsync(id);
-            if (existingUser == null)
+            var existingUser = await _userRepository.GetByEmailAsync(email);
+            if (existingUser != null)
             {
-                return null;
+                return (false, null, "User already exists.");
             }
 
-            existingUser.email = user.email;
-            existingUser.password = user.password;
-            // Add any other properties you want to update
+            var user = new User
+            {
+                Id = Guid.NewGuid(),
+                Email = email,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(password)
+            };
 
-            await _context.SaveChangesAsync();
-            return existingUser;
+            var createdUser = await _userRepository.CreateAsync(user);
+            return (true, createdUser, null);
         }
 
-        public async Task<bool> DeleteUser(int id)
+        public async Task<(bool Success, string? Token, string? ErrorMessage)> LoginAsync(string email, string Password)
         {
-            var user = await _context.Users.FindAsync(id);
-            if (user == null)
+            var user = await _userRepository.GetByEmailAsync(email);
+            if (user == null || !BCrypt.Net.BCrypt.Verify(Password, user.PasswordHash))
             {
-                return false;
+                return (false, null, "Invalid email or password.");
             }
 
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
-            return true;
+            var token = GenerateJwtToken(user);
+            return (true, token, null);
         }
 
-        public async Task<User> GetUserByEmail(string email)
+        public async Task<User?> GetUserByIdAsync(Guid id)
         {
-            return await _context.Users
-                .FirstOrDefaultAsync(u => u.email.ToLower() == email.ToLower());
+            return await _userRepository.GetByIdAsync(id);
+        }
+
+        public async Task<IEnumerable<User>> GetAllUsersAsync()
+        {
+            return await _userRepository.GetAllAsync();
+        }
+
+        private string GenerateJwtToken(User user)
+        {
+            var jwtSettings = _configuration.GetSection("Jwt");
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]!));
+            var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var claims = new[]
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            };
+
+            var token = new JwtSecurityToken(
+                issuer: jwtSettings["Issuer"],
+                audience: jwtSettings["Audience"],
+                claims: claims,
+                expires: DateTime.UtcNow.AddHours(1),
+                signingCredentials: credentials
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }
 }
