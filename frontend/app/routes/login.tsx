@@ -44,23 +44,19 @@ function InputField({
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
   
-    if (!email) {
-      return json({ errors: { email: "Email is required" } }, { status: 400 });
-    }
-  
-    if (!password) {
-      return json({ errors: { password: "Password is required" } }, { status: 400 });
+    if (!email || !password) {
+      return json({
+        errors: {
+          email: !email ? "Email is required" : null,
+          password: !password ? "Password is required" : null,
+        }
+      }, { status: 400 });
     }
   
     try {
-      const data = await loginUser(email, password );
-  
+      const data = await loginUser(email, password);
       if (data.token) {
-        // Store the token (e.g., in localStorage or a cookie)
-        localStorage.setItem("token", data.token);
-  
-        // Redirect to the profile page or home page
-        return redirect(`/profile?token=${data.token}`);
+        return redirect(`/profile?token=${data.token}&email=${encodeURIComponent(data.email)}`); 
       } else {
         return json({ errors: { general: "Invalid credentials" } }, { status: 401 });
       }
@@ -68,7 +64,7 @@ function InputField({
       console.error("Login failed:", error);
       return json({ errors: { general: "An error occurred during login" } }, { status: 500 });
     }
-  }
+  };
   export default function Login() {
     const actionData = useActionData<typeof action>();
     const navigation = useNavigation();

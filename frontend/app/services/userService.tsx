@@ -2,9 +2,9 @@ import { redirect } from "@remix-run/react";
 
 const API_URL = "http://localhost:5207"
 
- export async function registerUser(email: string, password: string) {
+export async function registerUser(email: string, password: string) {
     try {
-        const response = await fetch(`http://localhost:5207/api/User/register`, {
+        const response = await fetch(`${API_URL}/api/User/register`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
