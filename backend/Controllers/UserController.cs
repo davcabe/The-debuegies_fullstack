@@ -40,7 +40,6 @@ namespace Fullstack.Controllers
         }
 
         [HttpGet("users")]
-        [Authorize]
         public async Task<IActionResult> GetAllUsers()
         {
             var users = await _userService.GetAllUsersAsync();
