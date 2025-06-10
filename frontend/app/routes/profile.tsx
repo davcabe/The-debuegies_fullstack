@@ -5,20 +5,14 @@ import { useEffect, useState } from "react";
 export default function Profile() {
   const [searchParams] = useSearchParams();
   const [token, setToken] = useState<string | null>(null);
-
+ 
   useEffect(() => {
-    // Guardar el token si viene desde la URL
-    const tokenFromUrl = searchParams.get("token");
-    if (tokenFromUrl) {
-      localStorage.setItem("auth_token", tokenFromUrl);
-      setToken(tokenFromUrl);
+    const token = searchParams.get("token");
+    if (token) {
+      localStorage.setItem("auth_token", token);
       window.history.replaceState({}, "", "/profile");
-    } else {
-      // Si no viene en la URL, obtenerlo desde localStorage
-      const storedToken = localStorage.getItem("auth_token");
-      setToken(storedToken);
     }
-  }, [searchParams]);
+  }, [searchParams]); 
 
   return (
     <div className="flex items-center justify-center h-screen bg-gray-100">

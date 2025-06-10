@@ -53,14 +53,14 @@ function InputField({
     }
   
     try {
-      const response = await loginUser(email, password );
+      const data = await loginUser(email, password );
   
-      if (response.token) {
+      if (data.token) {
         // Store the token (e.g., in localStorage or a cookie)
-        localStorage.setItem("token", response.token);
+        localStorage.setItem("token", data.token);
   
         // Redirect to the profile page or home page
-        return redirect("/profile");
+        return redirect(`/profile?token=${data.token}`);
       } else {
         return json({ errors: { general: "Invalid credentials" } }, { status: 401 });
       }
@@ -69,7 +69,6 @@ function InputField({
       return json({ errors: { general: "An error occurred during login" } }, { status: 500 });
     }
   }
-
   export default function Login() {
     const actionData = useActionData<typeof action>();
     const navigation = useNavigation();

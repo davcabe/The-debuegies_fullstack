@@ -1,11 +1,10 @@
-import { json } from "@remix-run/react";
-import { redirect } from "react-router";
+import { redirect } from "@remix-run/react";
 
 const API_URL = "http://localhost:5207"
 
  export async function registerUser(email: string, password: string) {
     try {
-        const response = await fetch(`${API_URL}/api/Auth/register`, {
+        const response = await fetch(`http://localhost:5207/api/User/register`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -27,7 +26,7 @@ const API_URL = "http://localhost:5207"
 
 export async function loginUser(email: string, password: string) { 
     try {
-        const response = await fetch(`${API_URL}/api/Auth/login`, {
+        const response = await fetch(`${API_URL}/api/User/login`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -40,9 +39,7 @@ export async function loginUser(email: string, password: string) {
         }
         const data = await response.json();
         console.log('Login exitoso:', data); 
-        return data; // Asegúrate de que la respuesta contenga un campo 'token'
-        /* const token = data.token; */ // Asegúrate de que la respuesta contenga un campo 'token'   
-        /* return redirect(`/profile?token=${token}`); */ // Redirige a la ruta de login con el token`);
+        return data;
         } catch (error) {
         console.error("Error logging in user:", error);
         throw error;

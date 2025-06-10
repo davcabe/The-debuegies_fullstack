@@ -55,6 +55,7 @@ export const action: ActionFunction = async ({ request }) => {
     await registerUser(email, password);
     return redirect("/login");
   } catch (error: any) {
+    console.error("Error desde action:", error.message); 
     return json({
       errors: {
         general: error.message || "Registration failed"
