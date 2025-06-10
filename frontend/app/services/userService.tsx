@@ -15,8 +15,7 @@ export async function registerUser(email: string, password: string) {
             const errorData = await response.json();       
             throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`);    
         }  
-        const data = await response.json();     
-        console.log('Registro exitoso:', data);     
+        const data = await response.json();
         return data;
     } catch (error) {
         console.error("Error registering user:", error);
@@ -38,7 +37,6 @@ export async function loginUser(email: string, password: string) {
             throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`);
         }
         const data = await response.json();
-        console.log('Login exitoso:', data); 
         return data;
         } catch (error) {
         console.error("Error logging in user:", error);

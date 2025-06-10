@@ -1,3 +1,4 @@
+// app/routes/login.tsx
 import { Form, useActionData, useNavigation, Link, json, redirect } from "@remix-run/react";
 import type { ActionFunction } from "@remix-run/node";
 import { useState } from "react";
@@ -56,7 +57,7 @@ function InputField({
     try {
       const data = await loginUser(email, password);
       if (data.token) {
-        return redirect(`/profile?token=${data.token}&email=${encodeURIComponent(data.email)}`); 
+        return redirect(`/profile?token=${data.token}&email=${encodeURIComponent(email)}`); 
       } else {
         return json({ errors: { general: "Invalid credentials" } }, { status: 401 });
       }
