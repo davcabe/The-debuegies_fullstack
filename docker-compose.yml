@@ -1,45 +1,55 @@
+version: '3.8'
+
 services:
   db:
-    image: postgres:latest
-    container_name: dbtestpg
-    restart: always
+    image: postgres:16
+    container_name: fullstack_db
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     ports:
-      - "5433:5432"
+      - "5432:5432"
     volumes:
-      - pg_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     networks:
-      - my_network
+      - fullstack_network
+
   backend:
-    build: ./Backend
-    container_name: backend
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: fullstack_backend
     environment:
-      ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};Database=${POSTGRES_DB}"
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=db;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+      - JWT__Key=ThisIsMySuperSecureAndLongKeyForDotNet9AuthApp2024
+      - JWT__Issuer=FullstackIssuer
+      - JWT__Audience=FullstackAudience
     ports:
-      - "8080:8080"
+      - "5207:8080"
     depends_on:
       - db
     networks:
-      - my_network
+      - fullstack_network
+
   frontend:
-    build: ./Frontend
-    container_name: frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: fullstack_frontend
     environment:
-      API_URL: "http://backend:8080"
+      - API_URL=http://backend:8080
     ports:
       - "3000:3000"
     depends_on:
       - backend
     networks:
-      - my_network
+      - fullstack_network
 
 volumes:
-  pg_data:
+  postgres_data:
 
 networks:
-  my_network:
+  fullstack_network:
     driver: bridge
