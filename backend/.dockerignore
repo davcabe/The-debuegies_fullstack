@@ -17,7 +17,6 @@ obj/
 *.vscode/
 Dockerfile*
 docker-compose*
-.env
 node_modules/
 wwwroot/
 secrets.json
