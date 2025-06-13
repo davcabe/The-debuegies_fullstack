@@ -1,10 +1,13 @@
-import { redirect } from "@remix-run/react";
+const VITE_API_URL = import.meta.env.VITE_API_URL;
 
-const API_URL = "http://localhost:5207"
+console.log("VITE_API_URL at build/runtime:", VITE_API_URL);
+if (!VITE_API_URL) {
+    throw new Error("VITE_API_URL is not defined. Check your environment variables and Docker Compose configuration.");
+}
 
 export async function registerUser(email: string, password: string) {
     try {
-        const response = await fetch(`${API_URL}/api/User/register`, {
+        const response = await fetch(`${VITE_API_URL}/api/User/register`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -12,9 +15,9 @@ export async function registerUser(email: string, password: string) {
             body: JSON.stringify({ email, password })
         });
         if (!response.ok) {
-            const errorData = await response.json();       
+            const errorData = await response.json(); // <-- aquí falla si la respuesta no es JSON
             throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`);    
-        }  
+        }
         const data = await response.json();
         return data;
     } catch (error) {
@@ -25,7 +28,7 @@ export async function registerUser(email: string, password: string) {
 
 export async function loginUser(email: string, password: string) { 
     try {
-        const response = await fetch(`${API_URL}/api/User/login`, {
+        const response = await fetch(`${VITE_API_URL}/api/User/login`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -33,7 +36,7 @@ export async function loginUser(email: string, password: string) {
             body: JSON.stringify({ email, password })
         });
         if (!response.ok) {
-            const errorData = await response.json();
+            const errorData = await response.json(); // <-- aquí falla si la respuesta no es JSON
             throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`);
         }
         const data = await response.json();

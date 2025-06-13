@@ -2,9 +2,9 @@
 import { redirect, json, type ActionFunction } from "@remix-run/node";
 import { Form, useActionData, useNavigation, Link } from "@remix-run/react";
 import { useState } from "react";
-import { registerUser } from "~/services/userService";
+import { registerUser } from "../services/userService";
 
- function InputField({
+function InputField({
   label,
   name,
   type = "text",

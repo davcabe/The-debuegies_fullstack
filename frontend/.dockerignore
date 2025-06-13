@@ -1,0 +1,13 @@
+node_modules
+/build
+/.cache
+.env
+.git
+.gitignore
+Dockerfile
+README.md
+tsconfig.json
+# vite.config.ts ← elimina o comenta esta línea
+tailwind.config.ts
+postcss.config.js
+.eslintrc.cjs

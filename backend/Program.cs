@@ -6,10 +6,21 @@ using Microsoft.OpenApi.Models;
 using Fullstack.Data;
 using Fullstack.Services;
 using Fullstack.Repositories;
+using DotNetEnv;
+
+// Carga solo las variables JWT desde .env (si existe)
+Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+// Usa la cadena de conexión desde la configuración (Docker Compose la pasa como variable de entorno)
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
+    ?? builder.Configuration["ConnectionStrings__DefaultConnection"];
+
+// Si no hay cadena de conexión, lanza un error claro
+if (string.IsNullOrWhiteSpace(connectionString))
+    throw new Exception("No se encontró la cadena de conexión a la base de datos. Verifica las variables de entorno.");
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
 
@@ -74,11 +85,34 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
+// Ejecutar migraciones automáticamente al iniciar
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    db.Database.Migrate();
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+// Manejo global de errores para respuestas JSON
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next();
+    }
+    catch (Exception ex)
+    {
+        context.Response.StatusCode = 500;
+        context.Response.ContentType = "application/json";
+        var result = System.Text.Json.JsonSerializer.Serialize(new { message = ex.Message });
+        await context.Response.WriteAsync(result);
+    }
+});
 
 //app.UseHttpsRedirection();
 
