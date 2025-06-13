@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  labels:
+    app: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+        - name: backend
+          image: cavalenciad/the-debuegies_fullstack-backend:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: "Development"
+            - name: ConnectionStrings__DefaultConnection
+              value: "Host=db;Port=5432;Username=postgres;Password=1234;Database=the_debuggies_db"
+            - name: JWT__KEY
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: JWT__KEY
+            - name: JWT__ISSUER
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: JWT__ISSUER
+            - name: JWT__AUDIENCE
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: JWT__AUDIENCE
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+spec:
+  selector:
+    app: backend
+  ports:
+    - port: 8080

@@ -45,7 +45,7 @@ export default function Profile() {
         pronouns: "Elle/Le",
         interests: "Exploración, Arte, Música",
         location: "En algún lugar del universo",
-        bio: "Buscando la belleza en cada rincón del cosmos.",
+        bio: "Welcome to the jungle",
         avatarUrl: getRandomAvatar(),
       }));
     }, 750);
